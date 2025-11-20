@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  contracts    Contract[]
+}
+
+model Contract {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String
+  content     String
+  description String   @default("pendiente")
+  status      String   @default("Pendiente")
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum ContractType {
+  INDEFINIDO
+  PLAZO_FIJO
+  OBRA_FAENA
+  JORNADA_PARCIAL
+  REEMPLAZO
+  APRENDIZAJE
+  HONORARIOS
+  SERVICIOS_PROFESIONALES
+  MANDATO
+  ARRENDAMIENTO_SERVICIOS
+  COMPRAVENTA_BIENES
+  COMPRAVENTA_DOMINIO
+  COMPRAVENTA_INTERNACIONAL
+  SOCIEDAD
+  SUMINISTRO
+  FRANQUICIA
+  LEASING
+  FACTORING
+  DISTRIBUCION
+  AGENCIA
+  ARRIENDO
+  COMODATO
+  DONACION
+  MUTUO
+  HIPOTECA
+  EJECUCION_INMEDIATA
+  TRACTO_SUCESIVO
+}
