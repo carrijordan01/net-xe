@@ -1,15 +1,13 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react"; // Íconos de menú
-import logo from "../assets/Net-Xe.png"; // Logo del proyecto
+import { Menu, X } from "lucide-react";
+import logo from "../assets/Net-Xe.png";
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 flex flex-col">
-      {/* Header */}
       <header className="flex justify-between items-center px-6 md:px-12 py-4 border-b-4 border-blue-300 bg-white shadow-sm relative">
-        {/* Logo */}
         <div className="flex items-center space-x-2">
           <img
             src={logo}
@@ -18,7 +16,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Botones (vista escritorio) */}
         <nav className="hidden md:flex space-x-4">
           <a
             href="/login"
@@ -34,7 +31,6 @@ export default function Home() {
           </a>
         </nav>
 
-        {/* Botón de menú (vista móvil) */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden p-2 rounded-lg border border-blue-300 hover:bg-blue-50 transition"
@@ -42,7 +38,6 @@ export default function Home() {
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
 
-        {/* Menú desplegable móvil */}
         {menuOpen && (
           <div className="absolute top-16 right-6 bg-white border border-blue-200 rounded-xl shadow-md py-4 px-6 flex flex-col space-y-3 text-gray-700 md:hidden">
             <a
@@ -61,7 +56,6 @@ export default function Home() {
         )}
       </header>
 
-      {/* Sección principal */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-6">
         <h1 className="text-4xl md:text-5xl font-bold text-blue-800 mb-4">
           Bienvenido a <span className="text-green-500">Net-Xe</span>

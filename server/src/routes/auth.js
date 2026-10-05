@@ -8,49 +8,122 @@ const router = Router();
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: "Se requiere e-mail y contraseña" });
+    const {
+      nombre,
+      apellido,
+      email,
+      password,
+      role,
+      compania,
+      telefono,
+      tipoCuenta,
+      tipoUsuario
+    } = req.body;
+
+    if (!email || !password || !nombre || !apellido) {
+      return res.status(400).json({ error: "Faltan datos obligatorios" });
     }
 
-    const exist = await prisma.user.findUnique({ where: { email } });
-    if (exist) {
-      return res.status(409).json({ error: "E-mail ya registrado" });
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ error: "Email ya registrado" });
+    }
+
+    const allowedRoles = ["PROPONENTE", "SOLICITANTE"];
+    const normalizedRole = (role || "SOLICITANTE").toString().toUpperCase();
+    if (!allowedRoles.includes(normalizedRole)) {
+      return res.status(400).json({ error: "Rol invalido" });
+    }
+
+    const allowedAccountTypes = ["INDIVIDUAL", "EMPRESA"];
+    const normalizedAccountType = (tipoCuenta || tipoUsuario || "INDIVIDUAL")
+      .toString()
+      .toUpperCase();
+    if (!allowedAccountTypes.includes(normalizedAccountType)) {
+      return res.status(400).json({ error: "Tipo de cuenta invalido" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({ data: { email, passwordHash } });
 
-    res.status(201).json({ id: user.id, email: user.email });
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        firstName: nombre,
+        lastName: apellido,
+        company: compania || null,
+        phone: telefono || null,
+        accountType: normalizedAccountType,
+        role: normalizedRole
+      }
+    });
+
+    return res.status(201).json({
+      message: "Usuario registrado correctamente",
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        company: user.company,
+        phone: user.phone,
+        accountType: user.accountType,
+        role: user.role
+      }
+    });
+
   } catch (err) {
-    console.error("Error en /register:", err);
-    res.status(500).json({ error: "Error al intentar registrarse", detail: err.message });
+    console.error("Error registrando usuario:", err);
+    return res.status(500).json({ error: "Error del servidor" });
   }
 });
 
 router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
     if (!user) {
-      return res.status(401).json({ error: "E-mail o contraseña inválida" });
+      return res.status(400).json({ error: "Usuario no encontrado" });
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) {
-      return res.status(401).json({ error: "E-mail o contraseña inválida" });
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(400).json({ error: "Contrasena incorrecta" });
     }
 
     const token = jwt.sign(
-      { sub: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      {
+        sub: user.id,
+        email: user.email,
+        accountType: user.accountType,
+        role: user.role
+      },
+        process.env.JWT_SECRET,
+      { expiresIn: "24h" }
     );
 
-    res.json({ token });
+    return res.json({
+      message: "Login exitoso",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        company: user.company,
+        phone: user.phone,
+        accountType: user.accountType,
+        role: user.role
+      }
+    });
+
   } catch (err) {
-    console.error("Error en /login:", err);
-    res.status(500).json({ error: "Error al intentar iniciar sesión", detail: err.message, err });
+    console.error("Error en login:", err);
+    return res.status(500).json({ error: "Error del servidor" });
   }
 });
 

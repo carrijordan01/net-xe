@@ -15,17 +15,22 @@ function Login() {
         password,
       });
 
-      //const { token } = res.data;
-      localStorage.setItem("token", res.data.token);
-      console.log("Token guardado:", res.data.token);
-      alert("Inicio de sesión exitoso");
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+      console.log("Token guardado:", token);
+      alert("Inicio de sesion exitoso");
       await new Promise((r) => setTimeout(r, 200));
-      //window.location.href = "/contracts";
-      navigate("/contracts");
-
+      const destino =
+        user?.role === "PROPONENTE"
+          ? "/contratos-recibidos"
+          : "/mis-contratos";
+      navigate(destino);
     } catch (err) {
       console.error("Error en login:", err);
-      alert("Error al iniciar sesión: " + (err.response?.data?.error || "desconocido"));
+      alert("Error al iniciar sesion: " + (err.response?.data?.error || "desconocido"));
     }
   };
 
@@ -35,17 +40,17 @@ function Login() {
         <div className="absolute inset-0 bg-[radial-gradient(circle,_#e5e7eb_1px,_transparent_1px)] bg-[size:20px_20px] opacity-40"></div>
 
         <div className="relative z-10">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Iniciar sesión</h2>
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Iniciar sesion</h2>
           <p className="text-center text-sm text-gray-600 mb-6">
             ¿No tienes una cuenta?{" "}
             <a href="/register" className="text-green-600 hover:underline font-semibold">
-              Regístrate aquí
+              Registrate aqui
             </a>
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium">Correo electrónico*</label>
+              <label className="block text-sm font-medium">Correo electronico*</label>
               <input
                 type="email"
                 name="email"
@@ -53,12 +58,12 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su correo electrónico"
+                placeholder="Ingrese su correo electronico"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Contraseña*</label>
+              <label className="block text-sm font-medium">Contrasena*</label>
               <input
                 type="password"
                 name="password"
@@ -66,7 +71,7 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su contraseña"
+                placeholder="Ingrese su contrasena"
               />
             </div>
 
@@ -74,7 +79,7 @@ function Login() {
               type="submit"
               className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition border border-green-600 mt-4"
             >
-              Iniciar sesión
+              Iniciar sesion
             </button>
           </form>
         </div>

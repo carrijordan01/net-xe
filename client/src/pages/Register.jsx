@@ -11,6 +11,7 @@ export default function Register() {
     password: "",
     confirmPassword: "",
     esEmpresa: false,
+    role: "PROPONENTE",
   });
 
   const handleChange = (e) => {
@@ -36,7 +37,8 @@ export default function Register() {
         apellido: formData.apellido,
         compania: formData.esEmpresa ? formData.compania : null,
         telefono: formData.telefono,
-        tipoUsuario: formData.esEmpresa ? "empresa" : "individual",
+        tipoCuenta: formData.esEmpresa ? "EMPRESA" : "INDIVIDUAL",
+        role: formData.role,
       });
 
       alert("Registro exitoso. Redirigiendo al inicio de sesión...");
@@ -143,6 +145,20 @@ export default function Register() {
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
                 placeholder="Ingrese su número telefónico"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Tipo de usuario*</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+                >
+              <option value="SOLICITANTE">Solicitante (crea/solicita contratos)</option>
+              <option value="PROPONENTE">Proponente (ofrece servicios)</option>
+              </select>
             </div>
 
             <div>

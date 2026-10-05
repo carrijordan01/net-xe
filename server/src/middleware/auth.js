@@ -7,7 +7,7 @@ export default function requireAuth(req, res, next) {
     return res.status(401).json({ error: "token no proporcionado" });
   }
 
-  const token = authHeader.split(" ")[1]; // divide "Bearer token"
+  const token = authHeader.split(" ")[1];
   if (!token) {
     return res.status(401).json({ error: "token no proporcionado" });
   }
@@ -21,7 +21,3 @@ export default function requireAuth(req, res, next) {
     return res.status(401).json({ error: "token inválido o expirado" });
   }
 }
-
-
-//export default requireAuth;
-

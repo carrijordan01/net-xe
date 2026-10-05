@@ -16,28 +16,20 @@ datasource db {
 enum Role {
   ADMIN
   USER
+  PROPONENTE
+  SOLICITANTE
 }
 
-model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  contracts    Contract[]
+enum AccountType {
+  INDIVIDUAL
+  EMPRESA
 }
 
-model Contract {
-  id          Int      @id @default(autoincrement())
-  title       String
-  type        String
-  content     String
-  description String   @default("pendiente")
-  status      String   @default("Pendiente")
-  ownerId     Int
-  owner       User     @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum ContractState {
+  PENDIENTE
+  FIRMADO
+  RECHAZADO
+  EN_REVISION
 }
 
 enum ContractType {
@@ -68,4 +60,103 @@ enum ContractType {
   HIPOTECA
   EJECUCION_INMEDIATA
   TRACTO_SUCESIVO
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  company      String?
+  phone        String?
+  accountType  AccountType    @default(INDIVIDUAL)
+  role         Role           @default(SOLICITANTE)
+  createdAt    DateTime       @default(now())
+
+  contratosPropuestos   Contrato[] @relation("ProponenteRelation")
+  contratosSolicitados  Contrato[] @relation("SolicitanteRelation")
+  mensajes              MensajeContrato[]
+  documentos            DocumentoContrato[]
+  acciones              AccionHistorial[]
+  notificaciones        Notification[]
+}
+
+model Contrato {
+  id                    Int           @id @default(autoincrement())
+  tipo                  ContractType
+  estado                ContractState @default(PENDIENTE)
+
+  solicitanteId         Int
+  proponenteId          Int
+
+  datos                 Json
+
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  firmadoSolicitante    Boolean       @default(false)
+  firmadoProponente     Boolean       @default(false)
+
+  fechaFirmaSolicitante DateTime?
+  fechaFirmaProponente  DateTime?
+
+  firmaSolicitanteHash  String?
+  firmaProponenteHash   String?
+
+  pinFirma              String?
+
+  solicitante User @relation("SolicitanteRelation", fields: [solicitanteId], references: [id])
+  proponente  User @relation("ProponenteRelation", fields: [proponenteId], references: [id])
+
+  acciones    AccionHistorial[]
+  mensajes    MensajeContrato[]
+  documentos  DocumentoContrato[]
+}
+
+model AccionHistorial {
+  id          Int      @id @default(autoincrement())
+  contratoId  Int
+  usuarioId   Int
+  evento      String
+  comentario  String?
+  fecha       DateTime  @default(now()) // cuándo ocurrió el evento
+
+  contrato    Contrato  @relation(fields: [contratoId], references: [id])
+  usuario     User      @relation(fields: [usuarioId], references: [id])
+}
+
+
+model MensajeContrato {
+  id          Int      @id @default(autoincrement())
+  contratoId  Int
+  usuarioId   Int
+  mensaje     String
+  fecha       DateTime @default(now())
+
+  contrato    Contrato @relation(fields: [contratoId], references: [id])
+  usuario     User     @relation(fields: [usuarioId], references: [id])
+}
+
+model DocumentoContrato {
+  id          Int      @id @default(autoincrement())
+  contratoId  Int
+  usuarioId   Int
+  nombre      String
+  url         String
+  tipo        String
+  fecha       DateTime   @default(now())
+
+  contrato    Contrato @relation(fields: [contratoId], references: [id])
+  usuario     User     @relation(fields: [usuarioId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  mensaje   String
+  leido     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  usuario   User     @relation(fields: [usuarioId], references: [id])
 }
