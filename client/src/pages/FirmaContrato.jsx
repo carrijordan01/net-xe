@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 import {
   obtenerContrato,
-  firmarProponente,
+  firmarContraparte,
   firmarSolicitante,
 } from "../services/contratos";
 
@@ -12,7 +12,8 @@ export default function FirmaContrato() {
   const [contrato, setContrato] = useState(null);
   const [acepto, setAcepto] = useState(false);
 
-  const rol = localStorage.getItem("rol"); // "proponente" | "solicitante"
+  // "contraparte" | "solicitante", según el usuario guardado al iniciar sesión
+  const rol = (JSON.parse(localStorage.getItem("user") || "{}").role || "").toLowerCase();
 
   useEffect(() => {
     const cargar = async () => {
@@ -26,8 +27,8 @@ export default function FirmaContrato() {
     if (!acepto) return alert("Debes aceptar el contenido antes de firmar.");
 
     try {
-      if (rol === "proponente") {
-        await firmarProponente(id);
+      if (rol === "contraparte") {
+        await firmarContraparte(id);
       } else {
         await firmarSolicitante(id);
       }
@@ -43,7 +44,7 @@ export default function FirmaContrato() {
   if (!contrato) return <p>Cargando...</p>;
 
   const yaFirmado =
-    (rol === "proponente" && contrato.firmadoProponente) ||
+    (rol === "contraparte" && contrato.firmadoContraparte) ||
     (rol === "solicitante" && contrato.firmadoSolicitante);
 
   return (

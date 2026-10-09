@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api";
 import { useNavigate } from "react-router-dom";
 import { descargarPDF } from "../services/contratos";
 
@@ -10,11 +10,7 @@ export default function MisContratos() {
   useEffect(() => {
     const cargarContratos = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/contratos/mios", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const res = await api.get("/contratos/mios");
         setContratos(res.data);
       } catch (err) {
         console.error("Error al cargar contratos:", err);
@@ -28,11 +24,7 @@ export default function MisContratos() {
     if (!confirm("¿Está seguro que desea eliminar este contrato?")) return;
 
     try {
-      await axios.delete(`http://localhost:4000/contratos/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+      await api.delete(`/contratos/${id}`);
 
       setContratos(contratos.filter(c => c.id !== id));
       alert("Contrato eliminado correctamente.");
@@ -92,7 +84,7 @@ export default function MisContratos() {
                   {c.tipo.replace("_", " ")}
                 </p>
                 <p className="text-gray-600 text-sm">
-                  Proponente: {c.proponente.nombre} {c.proponente.apellido}
+                  Contraparte: {c.contraparte.firstName} {c.contraparte.lastName}
                 </p>
                 <p className="text-gray-400 text-xs">
                   Creado el {new Date(c.createdAt).toLocaleDateString()}

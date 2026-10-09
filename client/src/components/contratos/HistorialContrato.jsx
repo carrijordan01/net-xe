@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api";
 
 export default function HistorialContrato({ contratoId }) {
   const [historial, setHistorial] = useState([]);
@@ -9,7 +9,7 @@ export default function HistorialContrato({ contratoId }) {
   useEffect(() => {
     async function fetchHistorial() {
       try {
-        const response = await axios.get(`/api/historial/${contratoId}`);
+        const response = await api.get(`/contratos/${contratoId}/historial`);
         setHistorial(response.data);
       } catch (err) {
         console.error("Error al cargar historial:", err);

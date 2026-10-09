@@ -11,9 +11,9 @@ export default function SeccionPartes({ datos, handleChange }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Proponente (nombre completo)</label>
-        <input type="text" name="proponenteNombre"
-          value={datos.proponenteNombre} onChange={handleChange}
+        <label className="block text-sm font-medium">Contraparte (nombre completo)</label>
+        <input type="text" name="contraparteNombre"
+          value={datos.contraparteNombre} onChange={handleChange}
           className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50" />
       </div>
 

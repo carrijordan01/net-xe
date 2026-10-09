@@ -1,19 +1,10 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:3000/notificaciones";
+import { api } from "../api";
 
 export const obtenerNotificaciones = async () => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(API_URL, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
+  const res = await api.get("/notificaciones");
   return res.data;
 };
 
 export const marcarLeida = async (id) => {
-  const token = localStorage.getItem("token");
-  await axios.put(`${API_URL}/${id}/leido`, {}, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  await api.put(`/notificaciones/${id}/leido`);
 };

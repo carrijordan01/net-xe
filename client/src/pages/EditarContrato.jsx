@@ -23,7 +23,7 @@ export default function EditarContrato() {
       try {
         const contrato = await obtenerContrato(id);
 
-        if (contrato.firmadoProponente && contrato.firmadoPrestador) {
+        if (contrato.firmadoContraparte && contrato.firmadoSolicitante) {
           setBloqueado(true);
         }
 

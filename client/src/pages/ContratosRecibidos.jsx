@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api";
 import { useNavigate } from "react-router-dom";
 
 export default function ContratosRecibidos() {
@@ -9,11 +9,7 @@ export default function ContratosRecibidos() {
   useEffect(() => {
     const cargarContratos = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/contratos/recibidos", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const res = await api.get("/contratos/recibidos");
         setContratos(res.data);
       } catch (err) {
         console.error("Error al cargar contratos recibidos:", err);
@@ -58,7 +54,7 @@ export default function ContratosRecibidos() {
                   {c.tipo.replace("_", " ")}
                 </p>
                 <p className="text-gray-600 text-sm">
-                  Solicitante: {c.solicitante.nombre} {c.solicitante.apellido}
+                  Solicitante: {c.solicitante.firstName} {c.solicitante.lastName}
                 </p>
                 <p className="text-gray-400 text-xs">
                   Recibido el {new Date(c.createdAt).toLocaleDateString()}

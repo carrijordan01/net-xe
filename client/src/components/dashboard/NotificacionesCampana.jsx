@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { obtenerNotificaciones, marcarLeida } from "../services/notificaciones";
+import { obtenerNotificaciones, marcarLeida } from "../../services/notificaciones";
 
 export default function NotificacionesCampana() {
   const [notifs, setNotifs] = useState([]);

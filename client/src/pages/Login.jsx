@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import { api } from "../api";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
@@ -10,7 +10,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:4000/auth/login", {
+      const res = await api.post("/auth/login", {
         email,
         password,
       });
@@ -24,7 +24,7 @@ function Login() {
       alert("Inicio de sesion exitoso");
       await new Promise((r) => setTimeout(r, 200));
       const destino =
-        user?.role === "PROPONENTE"
+        user?.role === "CONTRAPARTE"
           ? "/contratos-recibidos"
           : "/mis-contratos";
       navigate(destino);
