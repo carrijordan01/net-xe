@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { buscarContratos } from "../services/contratos";
-import FiltrosContratos from "../contratos/FiltrosContratos";
+import FiltrosContratos from "../components/contratos/FiltrosContratos";
 
-export default function PanelProponente() {
+export default function PanelContraparte() {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-800">Panel de Proponente</h2>
+      <h2 className="text-xl font-semibold text-gray-800">Panel de Contraparte</h2>
 
       <div className="p-4 bg-purple-50 border border-purple-300 rounded-lg shadow-sm">
         <h3 className="font-semibold text-gray-800">Contratos recibidos</h3>
@@ -32,7 +32,7 @@ export default function PanelProponente() {
   );
 }
 
-export function ContratosProponente() {
+export function ContratosContraparte() {
   const [contratos, setContratos] = useState([]);
 
   const cargar = async (filtros = {}) => {
@@ -58,7 +58,7 @@ export function ContratosProponente() {
             <p className="text-sm">{c.descripcion}</p>
             <p className="text-xs text-gray-500">Tipo: {c.tipo}</p>
             <p className="text-xs text-gray-500">
-              Estado: {c.firmadoProponente && c.firmadoSolicitante ? "Firmado" : "Pendiente"}
+              Estado: {c.firmadoContraparte && c.firmadoSolicitante ? "Firmado" : "Pendiente"}
             </p>
           </div>
         ))}

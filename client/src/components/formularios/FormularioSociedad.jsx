@@ -5,12 +5,12 @@ import SeccionPartes from "./SeccionPartes";
 export default function FormularioSociedad() {
   const [datos, setDatos] = useState({
     solicitanteNombre: "",
-    proponenteNombre: "",
+    contraparteNombre: "",
     fechaInicio: "",
     razonSocial: "",
     tipoSociedad: "",
     aporteSolicitante: "",
-    aporteProponente: "",
+    aporteContraparte: "",
     objetoSocial: "",
     administracion: "",
     domicilioLegal: "",
@@ -62,8 +62,8 @@ export default function FormularioSociedad() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Aporte Proponente</label>
-          <input name="aporteProponente" value={datos.aporteProponente}
+          <label className="block text-sm font-medium">Aporte Contraparte</label>
+          <input name="aporteContraparte" value={datos.aporteContraparte}
             onChange={handleChange} className="w-full p-2 border bg-gray-50 border-gray-300 rounded-lg" />
         </div>
       </div>

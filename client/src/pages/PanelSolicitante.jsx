@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { buscarContratos } from "../services/contratos";
-import FiltrosContratos from "../contratos/FiltrosContratos";
+import FiltrosContratos from "../components/contratos/FiltrosContratos";
 
 export default function PanelSolicitante() {
   return (
@@ -58,7 +58,7 @@ export function ContratosSolicitante() {
             <p className="text-sm">{c.descripcion}</p>
             <p className="text-xs text-gray-500">Tipo: {c.tipo}</p>
             <p className="text-xs text-gray-500">
-              Estado: {c.firmadoProponente && c.firmadoSolicitante ? "Firmado" : "Pendiente"}
+              Estado: {c.firmadoContraparte && c.firmadoSolicitante ? "Firmado" : "Pendiente"}
             </p>
           </div>
         ))}

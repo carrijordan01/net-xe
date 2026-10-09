@@ -28,158 +28,158 @@ import FormularioTractoSucesivo from "../components/formularios/FormularioTracto
 
 export default function ContratoFormulario() {
 
-    const { tipoContrato, proponenteId, idPlantilla } = useParams();
+    const { tipoContrato, contraparteId, idPlantilla } = useParams();
     
     const renderFormulario = () => {
         switch (idPlantilla) {
             case "indefinido": //mantener
                 return (
                 <FormularioIndefinido
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "plazo-fijo": //mantener
                 return (
                 <FormularioPlazoFijo
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "obra-faena": //simplificar
                 return (
                 <FormularioObraFaena
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "jornada-parcial": //mantener
                 return (
                 <FormularioJornadaParcial
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "reemplazo": //simplificar
                 return (
                 <FormularioReemplazo
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "aprendizaje": //eliminar
                 return (
                 <FormularioAprendizaje
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "honorarios": //eliminar
                 return (
                 <FormularioHonorarios
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "servicios-profesionales": //mantener
                 return (
                 <FormularioServiciosProfesionales
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "compraventa-bienes": //mantener
                 return (
                 <FormularioCompraventaBienes
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "compraventa-dominio": //simplificar
                 return (
                 <FormularioCompraventaDominio
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "compraventa-internacional": //eliminar 
                 return (
                 <FormularioCompraventaInternacional
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "agencia": //simplificar
                 return (
                 <FormularioAgencia
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "distribucion": //simplificar
                 return (
                 <FormularioDistribucion
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "suministro": //simplificar
                 return (
                 <FormularioSuministro
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "sociedad"://eliminar
                 return (
                 <FormularioSociedad
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "franquicia": //eliminar
                 return (
                 <FormularioFranquicia
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "leasing": //eliminar
                 return (
                 <FormularioLeasing
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "factoring": //eliminar
                 return (
                 <FormularioFactoring
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "arriendo": //mantener
                 return (
                 <FormularioArriendo
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "comodato": //mantener
                 return (
                 <FormularioComodato
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "donacion": //simplificar
                 return (
                 <FormularioDonacion
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "mutuo": //simplificar
                 return (
                 <FormularioMutuo
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "hipoteca": //eliminar
                 return (
                 <FormularioHipoteca
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "ejecucion-inmediata": //mantener como modalidad
                 return (
                 <FormularioEjecucionInmediata
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             case "tracto-sucesivo": //mantener como modalidad
                 return (
                 <FormularioTractoSucesivo
-                    proponenteId={proponenteId}
+                    contraparteId={contraparteId}
                     tipoContrato={tipoContrato}
                 />);
             default:

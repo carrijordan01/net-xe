@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../db.js';
 
-const prisma = new PrismaClient();
 const router = Router();
 
 router.post("/register", async (req, res) => {
@@ -15,13 +14,15 @@ router.post("/register", async (req, res) => {
       password,
       role,
       compania,
-      telefono,
-      tipoCuenta,
-      tipoUsuario
+      telefono
     } = req.body;
 
     if (!email || !password || !nombre || !apellido) {
       return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -29,19 +30,14 @@ router.post("/register", async (req, res) => {
       return res.status(409).json({ error: "Email ya registrado" });
     }
 
-    const allowedRoles = ["PROPONENTE", "SOLICITANTE"];
+    const allowedRoles = ["SOLICITANTE", "CONTRAPARTE"];
     const normalizedRole = (role || "SOLICITANTE").toString().toUpperCase();
     if (!allowedRoles.includes(normalizedRole)) {
       return res.status(400).json({ error: "Rol invalido" });
     }
 
-    const allowedAccountTypes = ["INDIVIDUAL", "EMPRESA"];
-    const normalizedAccountType = (tipoCuenta || tipoUsuario || "INDIVIDUAL")
-      .toString()
-      .toUpperCase();
-    if (!allowedAccountTypes.includes(normalizedAccountType)) {
-      return res.status(400).json({ error: "Tipo de cuenta invalido" });
-    }
+    // Si representa a una empresa la cuenta es EMPRESA; si no, INDIVIDUAL
+    const normalizedAccountType = compania?.trim() ? "EMPRESA" : "INDIVIDUAL";
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -51,7 +47,7 @@ router.post("/register", async (req, res) => {
         passwordHash,
         firstName: nombre,
         lastName: apellido,
-        company: compania || null,
+        company: compania?.trim() || null,
         phone: telefono || null,
         accountType: normalizedAccountType,
         role: normalizedRole
@@ -86,13 +82,9 @@ router.post("/login", async (req, res) => {
       where: { email }
     });
 
-    if (!user) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
-    }
-
-    const isValid = await bcrypt.compare(password, user.passwordHash);
+    const isValid = user && password && await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      return res.status(400).json({ error: "Contrasena incorrecta" });
+      return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
     const token = jwt.sign(

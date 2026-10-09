@@ -5,7 +5,7 @@ import SeccionPartes from "./SeccionPartes";
 export default function FormularioHonorarios() {
   const [datos, setDatos] = useState({
     solicitanteNombre: "",
-    proponenteNombre: "",
+    contraparteNombre: "",
     fechaInicio: "",
     servicio: "",
     monto: "",

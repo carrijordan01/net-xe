@@ -5,7 +5,7 @@ import SeccionPartes from "./SeccionPartes";
 export default function FormularioPlazoFijo() {
   const [datos, setDatos] = useState({
     solicitanteNombre: "",
-    proponenteNombre: "",
+    contraparteNombre: "",
     fechaInicio: "",
     fechaTermino: "",
     valor: 0,

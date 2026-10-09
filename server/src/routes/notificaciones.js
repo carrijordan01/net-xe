@@ -6,14 +6,8 @@ const router = express.Router();
 
 // Obtener notificaciones del usuario
 router.get("/", requireAuth, async (req, res) => {
-  const usuarioId = req.user?.id || req.user?.sub;
-
-  if (!usuarioId) {
-    return res.status(400).json({ error: "No se pudo determinar el usuario." });
-  }
-
   const notifs = await prisma.notification.findMany({
-    where: { usuarioId },
+    where: { usuarioId: req.user.id },
     orderBy: { createdAt: "desc" }
   });
 
@@ -22,14 +16,18 @@ router.get("/", requireAuth, async (req, res) => {
 
 // Marcar notificación como leída
 router.put("/:id/leido", requireAuth, async (req, res) => {
-  const notifId = parseInt(req.params.id);
+  const notifId = Number(req.params.id);
 
-  const notif = await prisma.notification.update({
-    where: { id: notifId },
+  const { count } = await prisma.notification.updateMany({
+    where: { id: notifId, usuarioId: req.user.id },
     data: { leido: true }
   });
 
-  res.json(notif);
+  if (count === 0) {
+    return res.status(404).json({ error: "Notificación no encontrada." });
+  }
+
+  res.json({ id: notifId, leido: true });
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import { api } from "../api";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -11,7 +11,7 @@ export default function Register() {
     password: "",
     confirmPassword: "",
     esEmpresa: false,
-    role: "PROPONENTE",
+    role: "CONTRAPARTE",
   });
 
   const handleChange = (e) => {
@@ -30,14 +30,13 @@ export default function Register() {
     }
 
     try {
-      await axios.post("http://localhost:4000/auth/register", {
+      await api.post("/auth/register", {
         email: formData.email,
         password: formData.password,
         nombre: formData.nombre,
         apellido: formData.apellido,
         compania: formData.esEmpresa ? formData.compania : null,
-        telefono: formData.telefono,
-        tipoCuenta: formData.esEmpresa ? "EMPRESA" : "INDIVIDUAL",
+        telefono: formData.telefono,
         role: formData.role,
       });
 
@@ -157,7 +156,7 @@ export default function Register() {
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
                 >
               <option value="SOLICITANTE">Solicitante (crea/solicita contratos)</option>
-              <option value="PROPONENTE">Proponente (ofrece servicios)</option>
+              <option value="CONTRAPARTE">Contraparte (ofrece servicios)</option>
               </select>
             </div>
 

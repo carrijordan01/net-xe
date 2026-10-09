@@ -5,7 +5,7 @@ import SeccionPartes from "./SeccionPartes";
 export default function FormularioFranquicia() {
   const [datos, setDatos] = useState({
     solicitanteNombre: "",
-    proponenteNombre: "",
+    contraparteNombre: "",
     fechaInicio: "",
     marca: "",
     canonEntrada: "",

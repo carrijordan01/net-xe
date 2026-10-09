@@ -5,7 +5,7 @@ import SeccionPartes from "./SeccionPartes";
 export default function FormularioJornadaParcial() {
   const [datos, setDatos] = useState({
     solicitanteNombre: "",
-    proponenteNombre: "",
+    contraparteNombre: "",
     fechaInicio: "",
     valor: "",
     cargo: "",

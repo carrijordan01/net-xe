@@ -14,10 +14,8 @@ datasource db {
 }
 
 enum Role {
-  ADMIN
-  USER
-  PROPONENTE
   SOLICITANTE
+  CONTRAPARTE
 }
 
 enum AccountType {
@@ -27,9 +25,10 @@ enum AccountType {
 
 enum ContractState {
   PENDIENTE
-  FIRMADO
+  ACEPTADO
   RECHAZADO
-  EN_REVISION
+  FIRMADO
+  ELIMINADO
 }
 
 enum ContractType {
@@ -74,7 +73,7 @@ model User {
   role         Role           @default(SOLICITANTE)
   createdAt    DateTime       @default(now())
 
-  contratosPropuestos   Contrato[] @relation("ProponenteRelation")
+  contratosRecibidos    Contrato[] @relation("ContraparteRelation")
   contratosSolicitados  Contrato[] @relation("SolicitanteRelation")
   mensajes              MensajeContrato[]
   documentos            DocumentoContrato[]
@@ -86,9 +85,11 @@ model Contrato {
   id                    Int           @id @default(autoincrement())
   tipo                  ContractType
   estado                ContractState @default(PENDIENTE)
+  modalidad             String?
+  fechaTermino          DateTime?
 
   solicitanteId         Int
-  proponenteId          Int
+  contraparteId         Int
 
   datos                 Json
 
@@ -96,18 +97,19 @@ model Contrato {
   updatedAt             DateTime      @updatedAt
 
   firmadoSolicitante    Boolean       @default(false)
-  firmadoProponente     Boolean       @default(false)
+  firmadoContraparte    Boolean       @default(false)
 
   fechaFirmaSolicitante DateTime?
-  fechaFirmaProponente  DateTime?
+  fechaFirmaContraparte DateTime?
+
+  ipFirmaSolicitante    String?
+  ipFirmaContraparte    String?
 
   firmaSolicitanteHash  String?
-  firmaProponenteHash   String?
-
-  pinFirma              String?
+  firmaContraparteHash  String?
 
   solicitante User @relation("SolicitanteRelation", fields: [solicitanteId], references: [id])
-  proponente  User @relation("ProponenteRelation", fields: [proponenteId], references: [id])
+  contraparte User @relation("ContraparteRelation", fields: [contraparteId], references: [id])
 
   acciones    AccionHistorial[]
   mensajes    MensajeContrato[]

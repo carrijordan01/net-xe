@@ -4,15 +4,26 @@ import requireAuth from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Listar usuarios (excepto el propio). Filtro opcional: ?role=CONTRAPARTE
 router.get("/", requireAuth, async (req, res) => {
   try {
+    const where = { id: { not: req.user.id } };
+    const role = req.query.role?.toString().toUpperCase();
+    if (role === "SOLICITANTE" || role === "CONTRAPARTE") {
+      where.role = role;
+    }
+
     const users = await prisma.user.findMany({
+      where,
+      orderBy: { firstName: "asc" },
       select: {
         id: true,
-        nombre: true,
-        apellido: true,
+        firstName: true,
+        lastName: true,
         email: true,
-        tipoCuenta: true,
+        phone: true,
+        company: true,
+        accountType: true,
         role: true
       }
     });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function DetalleContrato() {
@@ -10,9 +10,7 @@ export default function DetalleContrato() {
   useEffect(() => {
     const cargar = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/contratos/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
+        const res = await api.get(`/contratos/${id}`);
         setContrato(res.data);
       } catch (err) {
         console.error("Error cargando contrato:", err);
@@ -31,7 +29,7 @@ export default function DetalleContrato() {
     );
   }
 
-  const { tipo, solicitante, proponente, datos, createdAt } = contrato;
+  const { tipo, solicitante, contraparte, datos, createdAt } = contrato;
   const entradasDatos = datos ? Object.entries(datos) : [];
 
   return (
@@ -59,11 +57,11 @@ export default function DetalleContrato() {
           </p>
 
           <p className="text-gray-700 mt-3">
-            <b>Solicitante:</b> {solicitante.nombre} {solicitante.apellido} ({solicitante.email})
+            <b>Solicitante:</b> {solicitante.firstName} {solicitante.lastName} ({solicitante.email})
           </p>
 
           <p className="text-gray-700">
-            <b>Proponente:</b> {proponente.nombre} {proponente.apellido} ({proponente.email})
+            <b>Contraparte:</b> {contraparte.firstName} {contraparte.lastName} ({contraparte.email})
           </p>
         </div>
 

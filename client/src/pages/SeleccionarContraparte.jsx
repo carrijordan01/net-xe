@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 
-export default function SeleccionarProponente() {
+export default function SeleccionarContraparte() {
   const [usuarios, setUsuarios] = useState([]);
   const [busqueda, setBusqueda] = useState("");
 
@@ -12,9 +12,7 @@ export default function SeleccionarProponente() {
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/users", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
+        const res = await api.get("/usuarios?role=CONTRAPARTE");
         setUsuarios(res.data);
       } catch (err) {
         console.error("Error cargando usuarios:", err);
@@ -25,7 +23,7 @@ export default function SeleccionarProponente() {
   }, []);
 
   const usuariosFiltrados = usuarios.filter((u) =>
-    `${u.nombre} ${u.apellido} ${u.email}`
+    `${u.firstName} ${u.lastName} ${u.email}`
       .toLowerCase()
       .includes(busqueda.toLowerCase())
   );
@@ -43,7 +41,7 @@ export default function SeleccionarProponente() {
       <div className="flex-1 p-8">
 
         <h1 className="text-3xl font-bold text-blue-700 mb-6">
-          Seleccionar Proponente
+          Seleccionar Contraparte
         </h1>
 
         <input
@@ -61,9 +59,9 @@ export default function SeleccionarProponente() {
               className="flex items-center justify-between p-4 bg-white rounded-xl shadow border"
             >
               <div>
-                <p className="text-lg font-semibold">{u.nombre} {u.apellido}</p>
+                <p className="text-lg font-semibold">{u.firstName} {u.lastName}</p>
                 <p className="text-gray-600 text-sm">{u.email}</p>
-                <p className="text-gray-400 text-xs">{u.tipoCuenta}</p>
+                <p className="text-gray-400 text-xs">{u.accountType}</p>
                 <p className="text-gray-400 text-xs">Rol: {u.role}</p>
               </div>
 
