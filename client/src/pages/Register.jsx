@@ -1,200 +1,220 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FilePlus2, FileSignature } from "lucide-react";
 import { api } from "../api";
+import AuthCard, { Alerta, inputClass } from "../components/auth/AuthCard";
+
+const tiposCuenta = [
+  {
+    valor: "SOLICITANTE",
+    titulo: "Solicitante",
+    descripcion: "Creo, envío, firmo y gestiono contratos.",
+    Icono: FilePlus2
+  },
+  {
+    valor: "CONTRAPARTE",
+    titulo: "Contraparte",
+    descripcion: "Recibo contratos, los reviso, acepto o rechazo y firmo.",
+    Icono: FileSignature
+  }
+];
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validar(datos) {
+  const errores = {};
+  if (!datos.role) errores.role = "Selecciona un tipo de cuenta.";
+  if (!datos.nombre.trim()) errores.nombre = "Ingresa tu nombre.";
+  if (!datos.apellido.trim()) errores.apellido = "Ingresa tu apellido.";
+  if (!EMAIL_REGEX.test(datos.email.trim())) errores.email = "Ingresa un correo válido.";
+  if (datos.password.length < 8) errores.password = "La contraseña debe tener al menos 8 caracteres.";
+  if (datos.confirmPassword !== datos.password) errores.confirmPassword = "Las contraseñas no coinciden.";
+  return errores;
+}
 
 export default function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    role: "",
     nombre: "",
     apellido: "",
     email: "",
-    compania: "",
-    telefono: "",
     password: "",
     confirmPassword: "",
-    esEmpresa: false,
-    role: "CONTRAPARTE",
+    telefono: "",
+    compania: ""
   });
+  const [errores, setErrores] = useState({});
+  const [errorServidor, setErrorServidor] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [registrado, setRegistrado] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errores[name]) setErrores({ ...errores, [name]: undefined });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
+    setErrorServidor("");
 
+    const nuevosErrores = validar(formData);
+    setErrores(nuevosErrores);
+    if (Object.keys(nuevosErrores).length > 0) return;
+
+    setEnviando(true);
     try {
       await api.post("/auth/register", {
-        email: formData.email,
-        password: formData.password,
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        compania: formData.esEmpresa ? formData.compania : null,
-        telefono: formData.telefono,
         role: formData.role,
+        nombre: formData.nombre.trim(),
+        apellido: formData.apellido.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        telefono: formData.telefono.trim() || null,
+        compania: formData.compania.trim() || null
       });
 
-      alert("Registro exitoso. Redirigiendo al inicio de sesión...");
-      window.location.href = "/login";
+      setRegistrado(true);
+      setTimeout(() => {
+        navigate("/login", {
+          state: { mensaje: "Cuenta creada. Ya puedes iniciar sesión.", email: formData.email.trim() }
+        });
+      }, 2500);
     } catch (err) {
-      alert("Error al registrar: " + (err.response?.data?.error || "desconocido"));
+      setErrorServidor(err.response?.data?.error || "No se pudo completar el registro. Intenta nuevamente.");
+      setEnviando(false);
     }
   };
 
+  if (registrado) {
+    return (
+      <AuthCard titulo="¡Registro exitoso!">
+        <Alerta tipo="exito">
+          Tu cuenta de <b>{formData.role === "SOLICITANTE" ? "Solicitante" : "Contraparte"}</b> fue creada correctamente.
+          Te llevaremos al inicio de sesión en unos segundos…
+        </Alerta>
+        <Link
+          to="/login"
+          state={{ email: formData.email.trim() }}
+          className="block w-full text-center py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition border border-green-600"
+        >
+          Ir a iniciar sesión
+        </Link>
+      </AuthCard>
+    );
+  }
+
+  const error = (campo) =>
+    errores[campo] && <p className="mt-1 text-xs text-red-600">{errores[campo]}</p>;
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-md border-2 border-green-400 p-8 relative overflow-hidden">
-        {/* Fondo de puntos */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle,_#e5e7eb_1px,_transparent_1px)] bg-[size:20px_20px] opacity-40"></div>
+    <AuthCard
+      titulo="Registro de usuario"
+      ancho="max-w-lg"
+      subtitulo={
+        <>
+          ¿Ya tienes una cuenta?{" "}
+          <Link to="/login" className="text-green-600 hover:underline font-semibold">
+            Inicia sesión
+          </Link>
+        </>
+      }
+    >
+      <Alerta>{errorServidor}</Alerta>
 
-        <div className="relative z-10">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
-            Registro de usuario
-          </h2>
-          <p className="text-center text-sm text-gray-600 mb-6">
-            ¿Ya tienes una cuenta?{" "}
-            <a href="/login" className="text-green-600 hover:underline font-semibold">
-              Inicia sesión
-            </a>
-          </p>
-
-          {/* Formulario */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium">Nombre*</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Ingrese su nombre"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Apellido*</label>
-                <input
-                  type="text"
-                  name="apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Ingrese su apellido"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">Correo electrónico*</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su correo electrónico"
-              />
-            </div>
-
-            {/* Checkbox empresa */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="esEmpresa"
-                checked={formData.esEmpresa}
-                onChange={handleChange}
-                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-              />
-              <label className="text-sm text-gray-700">Soy una empresa</label>
-            </div>
-
-            {/* Campos adicionales para empresa */}
-            {formData.esEmpresa && (
-              <div>
-                <label className="block text-sm font-medium">Nombre de compañía*</label>
-                <input
-                  type="text"
-                  name="compania"
-                  value={formData.compania}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Ingrese el nombre de su compañía"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium">Número telefónico (opcional)</label>
-              <input
-                type="tel"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su número telefónico"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">Tipo de usuario*</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <fieldset>
+          <legend className="block text-sm font-medium mb-2">Tipo de cuenta*</legend>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {tiposCuenta.map((tipo) => {
+              const { valor, titulo, descripcion } = tipo;
+              const activo = formData.role === valor;
+              return (
+                <label
+                  key={valor}
+                  className={`flex gap-3 p-3 rounded-xl border-2 cursor-pointer transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 ${
+                    activo ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-green-300"
+                  }`}
                 >
-              <option value="SOLICITANTE">Solicitante (crea/solicita contratos)</option>
-              <option value="CONTRAPARTE">Contraparte (ofrece servicios)</option>
-              </select>
-            </div>
+                  <input
+                    type="radio"
+                    name="role"
+                    value={valor}
+                    checked={activo}
+                    onChange={handleChange}
+                    className="sr-only"
+                  />
+                  <tipo.Icono className={activo ? "text-green-600 shrink-0" : "text-blue-700 shrink-0"} size={24} />
+                  <span>
+                    <span className="block font-semibold text-gray-800">{titulo}</span>
+                    <span className="block text-xs text-gray-600">{descripcion}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          {error("role")}
+        </fieldset>
 
-            <div>
-              <label className="block text-sm font-medium">Contraseña*</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su contraseña"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">Confirmar contraseña*</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Confirme su contraseña"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition border border-green-600 mt-4"
-            >
-              Registrarme
-            </button>
-          </form>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="nombre" className="block text-sm font-medium">Nombre*</label>
+            <input id="nombre" type="text" name="nombre" value={formData.nombre} onChange={handleChange}
+              autoComplete="given-name" className={inputClass} placeholder="Ingrese su nombre" />
+            {error("nombre")}
+          </div>
+          <div>
+            <label htmlFor="apellido" className="block text-sm font-medium">Apellido*</label>
+            <input id="apellido" type="text" name="apellido" value={formData.apellido} onChange={handleChange}
+              autoComplete="family-name" className={inputClass} placeholder="Ingrese su apellido" />
+            {error("apellido")}
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium">Correo electrónico*</label>
+          <input id="email" type="email" name="email" value={formData.email} onChange={handleChange}
+            autoComplete="email" className={inputClass} placeholder="nombre@correo.cl" />
+          {error("email")}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium">Contraseña*</label>
+            <input id="password" type="password" name="password" value={formData.password} onChange={handleChange}
+              autoComplete="new-password" className={inputClass} placeholder="Mínimo 8 caracteres" />
+            {error("password")}
+          </div>
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium">Confirmar contraseña*</label>
+            <input id="confirmPassword" type="password" name="confirmPassword" value={formData.confirmPassword}
+              onChange={handleChange} autoComplete="new-password" className={inputClass} placeholder="Repita su contraseña" />
+            {error("confirmPassword")}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="telefono" className="block text-sm font-medium">Teléfono (opcional)</label>
+            <input id="telefono" type="tel" name="telefono" value={formData.telefono} onChange={handleChange}
+              autoComplete="tel" className={inputClass} placeholder="+56 9 1234 5678" />
+          </div>
+          <div>
+            <label htmlFor="compania" className="block text-sm font-medium">Empresa (opcional)</label>
+            <input id="compania" type="text" name="compania" value={formData.compania} onChange={handleChange}
+              autoComplete="organization" className={inputClass} placeholder="Si representa a una empresa" />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={enviando}
+          className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition border border-green-600 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {enviando ? "Registrando…" : "Registrarme"}
+        </button>
+      </form>
+    </AuthCard>
   );
 }
