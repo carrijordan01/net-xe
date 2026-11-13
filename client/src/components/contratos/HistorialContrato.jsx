@@ -1,82 +1,48 @@
-import { useEffect, useState } from "react";
-import { api } from "../../api";
+import { Clock, FilePen, FilePlus2, Paperclip, PenLine, Pencil, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { nombreRol } from "../../auth/sesion";
+import { formatearFechaHora } from "../../utils/formato";
 
-export default function HistorialContrato({ contratoId }) {
-  const [historial, setHistorial] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const iconos = [
+  [/^solicitud/i, FilePen, "text-amber-700 bg-amber-50"],
+  [/^documento adjuntado/i, Paperclip, "text-blue-700 bg-blue-50"],
+  [/creado/i, FilePlus2, "text-green-600 bg-green-50"],
+  [/editado/i, Pencil, "text-blue-700 bg-blue-50"],
+  [/firmado/i, PenLine, "text-green-700 bg-green-50"],
+  [/aceptado/i, CheckCircle2, "text-green-700 bg-green-50"],
+  [/rechazado/i, XCircle, "text-red-600 bg-red-50"],
+  [/eliminado/i, Trash2, "text-red-600 bg-red-50"]
+];
 
-  useEffect(() => {
-    async function fetchHistorial() {
-      try {
-        const response = await api.get(`/contratos/${contratoId}/historial`);
-        setHistorial(response.data);
-      } catch (err) {
-        console.error("Error al cargar historial:", err);
-        setError("No se pudo cargar el historial.");
-      } finally {
-        setLoading(false);
-      }
-    }
+function iconoEvento(evento) {
+  const encontrado = iconos.find(([patron]) => patron.test(evento));
+  return encontrado ? [encontrado[1], encontrado[2]] : [Clock, "text-gray-600 bg-gray-100"];
+}
 
-    if (contratoId) {
-      fetchHistorial();
-    }
-  }, [contratoId]);
-
-  if (loading) {
-    return (
-      <div className="text-gray-600 italic">Cargando historial...</div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-600 font-semibold text-sm">
-        {error}
-      </div>
-    );
+// Línea de tiempo de las acciones registradas sobre un contrato
+export default function HistorialContrato({ acciones }) {
+  if (acciones.length === 0) {
+    return <p className="text-sm text-gray-500">Aún no hay acciones registradas.</p>;
   }
 
   return (
-    <div className="w-full mt-6">
-      <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">
-        Historial del contrato
-      </h2>
-
-      {historial.length === 0 && (
-        <p className="text-gray-500 italic">
-          No hay eventos registrados en el historial.
-        </p>
-      )}
-
-      <div className="space-y-4">
-        {historial.map((item) => (
-          <div
-            key={item.id}
-            className="p-4 border-l-4 border-blue-500 bg-blue-50 rounded shadow-sm"
-          >
-
-            <p className="text-lg font-semibold text-gray-800">
-              {item.evento}
-            </p>
-
-            {item.comentario && (
-              <p className="text-gray-700 mt-1">
-                <span className="font-semibold">Detalle:</span> {item.comentario}
+    <ol className="relative space-y-5 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-gray-200">
+      {acciones.map((a) => {
+        const [Icono, color] = iconoEvento(a.evento);
+        return (
+          <li key={a.id} className="relative flex gap-3">
+            <span className={`relative z-10 w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${color}`}>
+              <Icono size={16} />
+            </span>
+            <div className="min-w-0 text-sm">
+              <p className="font-medium text-gray-800">{a.evento}</p>
+              <p className="text-gray-500">
+                {a.usuario.firstName} {a.usuario.lastName} ({nombreRol(a.usuario.role)}) · {formatearFechaHora(a.fecha)}
               </p>
-            )}
-
-            <p className="text-sm text-gray-600 mt-2">
-              {item.usuario?.firstName} {item.usuario?.lastName} —{" "}
-              {new Date(item.fecha).toLocaleString("es-CL", {
-                dateStyle: "short",
-                timeStyle: "short",
-              })}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
+              {a.comentario && <p className="mt-1 text-gray-700 break-words">{a.comentario}</p>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

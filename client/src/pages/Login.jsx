@@ -1,90 +1,103 @@
 import { useState } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
-import { useNavigate } from "react-router-dom";
+import { guardarSesion } from "../auth/sesion";
+import AuthCard, { Alerta, inputClass } from "../components/auth/AuthCard";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const [email, setEmail] = useState(location.state?.email || "");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(
+    params.get("expirada") ? "Tu sesión expiró. Inicia sesión nuevamente." : ""
+  );
+  const [enviando, setEnviando] = useState(false);
+  const mensaje = location.state?.mensaje;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await api.post("/auth/login", {
-        email,
-        password,
-      });
+    setError("");
 
+    if (!email.trim() || !password) {
+      setError("Ingresa tu correo y contraseña.");
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const res = await api.post("/auth/login", { email: email.trim(), password });
       const { token, user } = res.data;
-      localStorage.setItem("token", token);
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
-      }
-      console.log("Token guardado:", token);
-      alert("Inicio de sesion exitoso");
-      await new Promise((r) => setTimeout(r, 200));
-      const destino =
-        user?.role === "CONTRAPARTE"
-          ? "/contratos-recibidos"
-          : "/mis-contratos";
-      navigate(destino);
+      guardarSesion(token, user);
+
+      // Vuelve a la página protegida que se intentó abrir, o al panel
+      const desde = location.state?.desde;
+      navigate(desde?.startsWith("/panel") ? desde : "/panel", { replace: true });
     } catch (err) {
-      console.error("Error en login:", err);
-      alert("Error al iniciar sesion: " + (err.response?.data?.error || "desconocido"));
+      setError(err.response?.data?.error || "No se pudo conectar con el servidor.");
+      setEnviando(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md border-2 border-green-400 p-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle,_#e5e7eb_1px,_transparent_1px)] bg-[size:20px_20px] opacity-40"></div>
+    <AuthCard
+      titulo="Iniciar sesión"
+      subtitulo={
+        <>
+          ¿No tienes una cuenta?{" "}
+          <Link to="/register" className="text-green-600 hover:underline font-semibold">
+            Regístrate aquí
+          </Link>
+        </>
+      }
+    >
+      {!error && <Alerta tipo="exito">{mensaje}</Alerta>}
+      <Alerta>{error}</Alerta>
 
-        <div className="relative z-10">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Iniciar sesion</h2>
-          <p className="text-center text-sm text-gray-600 mb-6">
-            ¿No tienes una cuenta?{" "}
-            <a href="/register" className="text-green-600 hover:underline font-semibold">
-              Registrate aqui
-            </a>
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium">Correo electronico*</label>
-              <input
-                type="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su correo electronico"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">Contrasena*</label>
-              <input
-                type="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Ingrese su contrasena"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition border border-green-600 mt-4"
-            >
-              Iniciar sesion
-            </button>
-          </form>
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium">Correo electrónico*</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            className={inputClass}
+            placeholder="nombre@correo.cl"
+          />
         </div>
-      </div>
-    </div>
+
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium">Contraseña*</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            className={inputClass}
+            placeholder="Ingrese su contraseña"
+          />
+          <div className="mt-1 text-right">
+            <Link to="/recuperar" state={{ email: email.trim() }} className="text-sm text-blue-700 hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={enviando}
+          className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition border border-green-600 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {enviando ? "Ingresando…" : "Iniciar sesión"}
+        </button>
+      </form>
+    </AuthCard>
   );
 }
 

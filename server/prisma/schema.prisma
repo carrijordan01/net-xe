@@ -34,29 +34,23 @@ enum ContractState {
 enum ContractType {
   INDEFINIDO
   PLAZO_FIJO
-  OBRA_FAENA
   JORNADA_PARCIAL
+  OBRA_FAENA
   REEMPLAZO
-  APRENDIZAJE
-  HONORARIOS
   SERVICIOS_PROFESIONALES
-  MANDATO
-  ARRENDAMIENTO_SERVICIOS
   COMPRAVENTA_BIENES
   COMPRAVENTA_DOMINIO
-  COMPRAVENTA_INTERNACIONAL
-  SOCIEDAD
-  SUMINISTRO
-  FRANQUICIA
-  LEASING
-  FACTORING
-  DISTRIBUCION
   AGENCIA
+  DISTRIBUCION
+  SUMINISTRO
   ARRIENDO
   COMODATO
   DONACION
   MUTUO
-  HIPOTECA
+  CONTRATO_SIMPLE
+}
+
+enum Modalidad {
   EJECUCION_INMEDIATA
   TRACTO_SUCESIVO
 }
@@ -73,19 +67,46 @@ model User {
   role         Role           @default(SOLICITANTE)
   createdAt    DateTime       @default(now())
 
+  // Firma electrónica: PIN adicional y bloqueo por intentos fallidos
+  pinFirmaHash           String?
+  intentosFirmaFallidos  Int       @default(0)
+  firmaBloqueadaHasta    DateTime?
+
+  // Las sesiones (JWT) emitidas antes de esta fecha dejan de ser válidas
+  credencialesCambiadasEn DateTime?
+
   contratosRecibidos    Contrato[] @relation("ContraparteRelation")
   contratosSolicitados  Contrato[] @relation("SolicitanteRelation")
   mensajes              MensajeContrato[]
   documentos            DocumentoContrato[]
   acciones              AccionHistorial[]
   notificaciones        Notification[]
+  solicitudesCambio     SolicitudCambio[] @relation("SolicitudesCreadas")
+  bloqueosHechos        Bloqueo[]  @relation("BloqueosHechos")
+  bloqueosRecibidos     Bloqueo[]  @relation("BloqueosRecibidos")
+  recuperaciones        RecuperacionPassword[]
+}
+
+// Un usuario bloquea a otro: no pueden ofrecerse contratos entre ellos y
+// quien bloquea deja de ser visible para el bloqueado
+model Bloqueo {
+  id           Int      @id @default(autoincrement())
+  bloqueadorId Int
+  bloqueadoId  Int
+  createdAt    DateTime @default(now())
+
+  bloqueador   User     @relation("BloqueosHechos", fields: [bloqueadorId], references: [id])
+  bloqueado    User     @relation("BloqueosRecibidos", fields: [bloqueadoId], references: [id])
+
+  @@unique([bloqueadorId, bloqueadoId])
+  @@index([bloqueadoId])
 }
 
 model Contrato {
   id                    Int           @id @default(autoincrement())
   tipo                  ContractType
   estado                ContractState @default(PENDIENTE)
-  modalidad             String?
+  modalidad             Modalidad?
   fechaTermino          DateTime?
 
   solicitanteId         Int
@@ -114,6 +135,8 @@ model Contrato {
   acciones    AccionHistorial[]
   mensajes    MensajeContrato[]
   documentos  DocumentoContrato[]
+  notificaciones Notification[]
+  solicitudes    SolicitudCambio[]
 }
 
 model AccionHistorial {
@@ -140,25 +163,102 @@ model MensajeContrato {
   usuario     User     @relation(fields: [usuarioId], references: [id])
 }
 
+// Documento adjunto a un contrato. El archivo se guarda en server/uploads con
+// un nombre aleatorio («archivo»); «nombre» es el nombre original para mostrar.
 model DocumentoContrato {
   id          Int      @id @default(autoincrement())
   contratoId  Int
   usuarioId   Int
   nombre      String
-  url         String
-  tipo        String
-  fecha       DateTime   @default(now())
+  descripcion String?
+  archivo     String   @unique
+  mimeType    String
+  tamano      Int
+  hash        String   // SHA-256 del archivo
+  fecha       DateTime @default(now())
 
   contrato    Contrato @relation(fields: [contratoId], references: [id])
   usuario     User     @relation(fields: [usuarioId], references: [id])
+
+  @@index([contratoId])
+}
+
+enum TipoNotificacion {
+  CONTRATO_RECIBIDO
+  CONTRATO_EDITADO
+  CONTRATO_ELIMINADO
+  CONTRATO_ACEPTADO
+  CONTRATO_RECHAZADO
+  CONTRATO_FIRMADO
+  VENCIMIENTO_PROXIMO
+  SOLICITUD_CAMBIO
+  SOLICITUD_RESPONDIDA
+  DOCUMENTO_ADJUNTO
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
-  usuarioId Int
-  mensaje   String
-  leido     Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         Int              @id @default(autoincrement())
+  usuarioId  Int
+  tipo       TipoNotificacion
+  mensaje    String
+  leido      Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  contratoId Int?
+  // Evita duplicar avisos generados automáticamente (p. ej. vencimientos)
+  clave      String?
 
-  usuario   User     @relation(fields: [usuarioId], references: [id])
+  usuario    User      @relation(fields: [usuarioId], references: [id])
+  contrato   Contrato? @relation(fields: [contratoId], references: [id])
+
+  @@unique([usuarioId, clave])
+  @@index([usuarioId, createdAt])
+}
+
+enum TipoSolicitud {
+  EDICION
+  ELIMINACION
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  CANCELADA
+}
+
+// Solicitud para editar o eliminar un contrato que ya tiene firmas.
+// En las ediciones, «propuesta» guarda la versión nueva completa
+// ({ datos, modalidad, fechaTermino }) y «cambios» las etiquetas modificadas.
+model SolicitudCambio {
+  id           Int             @id @default(autoincrement())
+  contratoId   Int
+  autorId      Int
+  tipo         TipoSolicitud
+  estado       EstadoSolicitud @default(PENDIENTE)
+  motivo       String
+  propuesta    Json?
+  cambios      String[]
+  respuesta    String?
+  createdAt    DateTime        @default(now())
+  respondidaAt DateTime?
+
+  contrato     Contrato        @relation(fields: [contratoId], references: [id])
+  autor        User            @relation("SolicitudesCreadas", fields: [autorId], references: [id])
+
+  @@index([contratoId, estado])
+}
+
+// Solicitud de recuperación de contraseña. Se guarda solo el hash SHA-256 del
+// token enviado por correo; vence a los 30 minutos y se usa una sola vez.
+model RecuperacionPassword {
+  id         Int       @id @default(autoincrement())
+  usuarioId  Int
+  tokenHash  String    @unique
+  expiraEn   DateTime
+  usadoEn    DateTime?
+  createdAt  DateTime  @default(now())
+
+  usuario    User      @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId, createdAt])
 }

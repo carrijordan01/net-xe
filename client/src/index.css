@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 body {
-  background-color: #cdfec7;
+  background-color: #f0fdf4; /* green-50, igual al inicio de los degradados */
 }
