@@ -3,3 +3,9 @@ node_modules
 .env
 
 /generated/prisma
+
+# Documentos adjuntos subidos por los usuarios
+/uploads
+
+# Correos guardados en modo local (sin SMTP)
+/correos
