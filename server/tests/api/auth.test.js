@@ -10,6 +10,13 @@ describe("registro", () => {
     expect(r.body.user).not.toHaveProperty("passwordHash");
   });
 
+  test("corrige las mayúsculas del nombre y el apellido", async () => {
+    const r = await api.post("/api/auth/register").send({
+      nombre: "maría josé", apellido: "de la fuente", email: `mj-${Date.now()}@test.local`, password: PASSWORD, role: "SOLICITANTE"
+    });
+    expect(r.body.user).toMatchObject({ firstName: "María José", lastName: "De la Fuente" });
+  });
+
   test("con empresa la cuenta es EMPRESA", async () => {
     const u = await registrar("CONTRAPARTE", { compania: "Panadería Ñuñoa SpA" });
     expect(u.user.accountType).toBe("EMPRESA");
@@ -76,6 +83,9 @@ describe("datos de la cuenta", () => {
     });
     expect(r.status).toBe(200);
     expect(r.body.user).toMatchObject({ firstName: "Ana", email: u.email, accountType: "EMPRESA" });
+
+    const minusculas = await como(u).put("/api/auth/yo").send({ nombre: "ana maría", apellido: "pérez-cotapos" });
+    expect(minusculas.body.user).toMatchObject({ firstName: "Ana María", lastName: "Pérez-Cotapos" });
   });
 
   test("valida los campos y devuelve los errores por campo", async () => {

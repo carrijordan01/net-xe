@@ -35,6 +35,27 @@ describe("crear", () => {
     expect(r.body).toMatchObject({ estado: "PENDIENTE", tipo: "INDEFINIDO", modalidad: "TRACTO_SUCESIVO", contraparteId: contraparte.id });
   });
 
+  test("guarda los textos autocorregidos", async () => {
+    const r = await como(solicitante).post("/api/contratos").send({
+      tipo: "INDEFINIDO",
+      contraparteId: contraparte.id,
+      datos: {
+        ...DATOS_INDEFINIDO,
+        ciudad: "san pedro de la paz",
+        rutSolicitante: "12345678k",
+        cargo: "analista de datos",
+        funciones: "revisar informes.  además apoyar en caja"
+      }
+    });
+    expect(r.status).toBe(201);
+    expect(r.body.datos).toMatchObject({
+      ciudad: "San Pedro de la Paz",
+      rutSolicitante: "12.345.678-K",
+      cargo: "Analista de datos",
+      funciones: "Revisar informes. Además apoyar en caja"
+    });
+  });
+
   test("una contraparte no crea contratos", async () => {
     const r = await como(contraparte).post("/api/contratos").send({ tipo: "INDEFINIDO", contraparteId: tercero.id, datos: DATOS_INDEFINIDO });
     expect(r.status).toBe(403);
